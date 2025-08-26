@@ -1,0 +1,41 @@
+﻿@page "/"
+@using QuestPDF.Fluent
+@using QuestPDF.Infrastructure
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<div>
+    <button class="btn btn-primary" @onclick="DownloadPDF">Generate PDF</button>
+</div>
+
+@code {
+    private string pdfFilename = "test.pdf";
+
+    private async Task DownloadPDF()
+    {
+        GeneratePDF();
+
+        //download pdf to client
+        var fileStream = File.OpenRead(pdfFilename);
+        using var streamRef = new DotNetStreamReference(fileStream);
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", pdfFilename, streamRef);
+    }
+
+    private void GeneratePDF()
+    {
+        QuestPDF.Settings.License = LicenseType.Community;
+
+        Document.Create(document =>
+        {
+            document.Page(page =>
+            {
+                page.Content().Text("Hello PDF!");
+            });
+        }).GeneratePdf(pdfFilename);
+    }
+}
